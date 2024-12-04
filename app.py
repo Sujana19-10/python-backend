@@ -12,8 +12,16 @@ CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for CORS
 
 # Access MongoDB URI from environment variables
 MONGO_URI = os.getenv('MONGO_URI', '')  # MongoDB URI from .env file
-client = MongoClient(MONGO_URI)
-db = client.get_database()
+
+# Attempt to establish MongoDB connection
+client = None
+db = None
+try:
+    client = MongoClient(MONGO_URI)
+    db = client.get_database()
+    print("MongoDB connected successfully")
+except Exception as e:
+    print(f"MongoDB connection failed: {str(e)}")
 
 # Access backend URL from environment variables (this is for frontend configuration)
 BACKEND_URL = os.getenv('BACKEND_URL', 'http://127.0.0.1:5000')  # Default to local if not found
