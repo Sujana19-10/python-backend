@@ -5,26 +5,32 @@ import os
 from pymongo import MongoClient
 
 # Load environment variables from .env file
-load_dotenv()
+load_dotenv(dotenv_path='.env.production')
+print("Environment variables loaded:", os.environ)
 
+# Initialize Flask app
 app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": "*"}})  # Allow all origins for CORS
 
+mongo_uri = os.getenv('MONGO_URI')
+print("MongoDB URI is", mongo_uri)
+
 # Access MongoDB URI from environment variables
 MONGO_URI = os.getenv('MONGO_URI', '')  # MongoDB URI from .env file
+BACKEND_URL = os.getenv('BACKEND_URL', 'http://127.0.0.1:5000')  # Default backend URL
 
-# Attempt to establish MongoDB connection
+# MongoDB connection setup
 client = None
 db = None
 try:
-    client = MongoClient(MONGO_URI)
-    db = client.get_database()
-    print("MongoDB connected successfully")
+    if MONGO_URI:
+        client = MongoClient(MONGO_URI)
+        db = client.get_database()  # Access the database
+        print("MongoDB connected successfully")
+    else:
+        print("MongoDB URI is not provided.")
 except Exception as e:
     print(f"MongoDB connection failed: {str(e)}")
-
-# Access backend URL from environment variables (this is for frontend configuration)
-BACKEND_URL = os.getenv('BACKEND_URL', 'http://127.0.0.1:5000')  # Default to local if not found
 
 @app.route('/verify', methods=['POST'])
 def verify_code():
@@ -114,4 +120,5 @@ def verify_code():
         return jsonify(correct=False, error=f"An error occurred: {str(e)}")
 
 if __name__ == '__main__':
+    # Run Flask app
     app.run(debug=True, host='0.0.0.0', port=5000)  # Use 0.0.0.0 for production or cloud hosting
